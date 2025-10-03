@@ -7,10 +7,14 @@ export function useProblemGenerator() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const generateProblem = async () => {
+  const generateProblem = async (options?: { difficulty?: string; problemType?: string }) => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/math-problem', { method: 'POST' });
+      const res = await fetch('/api/math-problem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options || {}),
+      });
       const json = await res.json();
       if (!res.ok || !json.problem) {
         console.error('Failed to generate problem', json);

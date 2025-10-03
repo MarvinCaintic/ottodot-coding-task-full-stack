@@ -3,11 +3,16 @@ import attempt from "lodash-es/attempt";
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GOOGLE_API_KEY!);
 const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash-lite" });
 
-export async function generateMathProblem() {
+export async function generateMathProblem(options?: { difficulty?: string; problemType?: string }) {
+  const difficulty = options?.difficulty || "medium";
+  const problemType = options?.problemType || "mixed";
+
   const prompt = `
-    Generate a single math word problem suitable for a Primary 5 student 
-    with one correct numeric answer. 
-    Return strictly JSON:
+    Generate a single math word problem suitable for a Primary 5 student.
+    Difficulty: ${difficulty}.
+    Problem type: ${problemType}.
+    The problem should have one correct numeric answer.
+    Return strictly JSON (no surrounding markdown) with exactly this shape:
     {
       "problem_text": "<string>",
       "final_answer": <number>

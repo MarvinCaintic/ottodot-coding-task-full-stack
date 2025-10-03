@@ -4,7 +4,11 @@ import { supabase } from '../../../lib/supabaseClient';
 
 export async function POST(request: Request) {
   try {
-    const problem = await generateMathProblem();
+    const body = await request.json().catch(() => ({}));
+    const difficulty = body?.difficulty;
+    const problemType = body?.problemType;
+
+    const problem = await generateMathProblem({ difficulty, problemType });
     if (!problem) {
       return NextResponse.json({ error: 'Failed to generate problem' }, { status: 500 });
     }
@@ -12,7 +16,12 @@ export async function POST(request: Request) {
     // save to supabase
     const { data, error } = await supabase
       .from('math_problem_sessions')
-      .insert({ problem_text: problem.problem_text, correct_answer: problem.final_answer })
+      .insert({
+        problem_text: problem.problem_text,
+        correct_answer: problem.final_answer,
+        difficulty: difficulty || 'medium',
+        problem_type: problemType || 'mixed',
+      })
       .select('id')
       .single();
 

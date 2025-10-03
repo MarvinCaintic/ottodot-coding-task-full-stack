@@ -137,10 +137,10 @@ When submitting your assessment, provide:
 
 If you have time, consider adding:
 
-- [ ] Difficulty levels (Easy/Medium/Hard)
+- [x] Difficulty levels (Easy/Medium/Hard)
 - [ ] Problem history view
 - [ ] Score tracking
-- [ ] Different problem types (addition, subtraction, multiplication, division)
+- [x] Different problem types (addition, subtraction, multiplication, division)
 - [ ] Hints system
 - [ ] Step-by-step solution explanations
 
