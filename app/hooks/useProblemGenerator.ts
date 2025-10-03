@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { generateMathProblem, generateFeedback } from "../services/geminiService";
-import { saveProblem, saveSubmission } from "../services/supabaseService";
-
 
 export function useProblemGenerator() {
   const [problem, setProblem] = useState<{ problem_text: string; final_answer: number } | null>(null);
@@ -13,14 +10,20 @@ export function useProblemGenerator() {
   const generateProblem = async () => {
     setIsLoading(true);
     try {
-      const parsed = await generateMathProblem();
-      const { data, error } = await saveProblem(parsed.problem_text, parsed.final_answer);
-      if (error) throw error;
+      const res = await fetch('/api/math-problem', { method: 'POST' });
+      const json = await res.json();
+      if (!res.ok || !json.problem) {
+        console.error('Failed to generate problem', json);
+        return;
+      }
 
-      setSessionId(data.id);
-      setProblem(parsed);
+      // response shape: { problem: { problem_text, final_answer }, sessionId }
+      setProblem(json.problem);
+      setSessionId(json.sessionId || null);
       setFeedback("");
       setIsCorrect(null);
+    } catch (err) {
+      console.error('generateProblem error', err);
     } finally {
       setIsLoading(false);
     }
@@ -31,13 +34,23 @@ export function useProblemGenerator() {
     setIsLoading(true);
 
     try {
-      const correct = userAnswer === problem.final_answer;
-      const feedbackText = await generateFeedback(problem.problem_text, userAnswer, problem.final_answer);
+      const res = await fetch('/api/math-problem/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, userAnswer }),
+      });
 
-      await saveSubmission(sessionId, userAnswer, correct, feedbackText);
+      const json = await res.json();
+      if (!res.ok) {
+        console.error('Submission failed', json);
+        return;
+      }
 
-      setFeedback(feedbackText);
-      setIsCorrect(correct);
+      // response shape: { isCorrect, feedback }
+      setFeedback(json.feedback || "");
+      setIsCorrect(Boolean(json.isCorrect));
+    } catch (err) {
+      console.error('submitAnswer error', err);
     } finally {
       setIsLoading(false);
     }

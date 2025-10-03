@@ -71,47 +71,36 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 1. Implement Frontend Logic (`app/page.tsx`)
 
-Complete the TODO sections in the main page component:
+Completed: the main page and hook are wired to the backend API routes.
 
-- **generateProblem**: Call your API route to generate a new math problem
-- **submitAnswer**: Submit the user's answer and get feedback
+- `generateProblem` calls `POST /api/math-problem` (see `app/hooks/useProblemGenerator.ts`).
+- `submitAnswer` posts to `POST /api/math-problem/submit` (see `app/hooks/useProblemGenerator.ts`).
 
-### 2. Create Backend API Route (`app/api/math-problem/route.ts`)
+### 2. Backend API Routes
 
-Create a new API route that handles:
+Implemented endpoints (see `app/api/math-problem`):
 
-#### POST /api/math-problem (Generate Problem)
-- Use Google's Gemini AI to generate a math word problem
-- The AI should return JSON with:
-  ```json
-  {
-    "problem_text": "A bakery sold 45 cupcakes...",
-    "final_answer": 15
-  }
-  ```
-- Save the problem to `math_problem_sessions` table
-- Return the problem and session ID to the frontend
+- `POST /api/math-problem` — generates a problem via Gemini and saves a session in `math_problem_sessions`. Implemented in `app/api/math-problem/route.ts`.
+- `POST /api/math-problem/submit` — accepts `{ sessionId, userAnswer }`, checks correctness, generates feedback via Gemini, saves to `math_problem_submissions`, and returns `{ isCorrect, feedback }`. Implemented in `app/api/math-problem/submit/route.ts`.
 
-#### POST /api/math-problem/submit (Submit Answer)
-- Receive the session ID and user's answer
-- Check if the answer is correct
-- Use AI to generate personalized feedback based on:
-  - The original problem
-  - The correct answer
-  - The user's answer
-  - Whether they got it right or wrong
-- Save the submission to `math_problem_submissions` table
-- Return the feedback and correctness to the frontend
+Both routes use the Supabase client (`lib/supabaseClient.ts`) and the Gemini helper (`app/services/geminiService.ts`).
 
-### 3. Requirements Checklist
+### 3. Requirements Checklist (current status)
 
-- [ ] AI generates appropriate Primary 5 level math problems
-- [ ] Problems and answers are saved to Supabase
-- [ ] User submissions are saved with feedback
-- [ ] AI generates helpful, personalized feedback
-- [ ] UI is clean and mobile-responsive
-- [ ] Error handling for API failures
-- [ ] Loading states during API calls
+- [x] AI generates appropriate Primary 5 level math problems (via `app/services/geminiService.ts`).
+- [x] Problems and answers are saved to Supabase (`math_problem_sessions`) — implemented in `app/api/math-problem/route.ts`.
+- [x] User submissions are saved with feedback (`math_problem_submissions`) — implemented in `app/api/math-problem/submit/route.ts`.
+- [x] AI generates helpful, personalized feedback (via `app/services/geminiService.ts`).
+- [x] UI is clean and mobile-responsive (Tailwind CSS; components in `app/components`).
+- [x] Error handling for API failures (basic try/catch and JSON error responses in API routes).
+- [x] Loading states during API calls (`isLoading`, `LoadingIndicator`, hook wiring).
+
+Notes / Remaining improvements:
+
+- Add stronger validation on API inputs (e.g. use `zod`) and more explicit error codes.
+- Add unit/integration tests for API routes.
+- Add rate-limiting / basic auth for production deployments.
+- Improve AI prompt tuning to guarantee strict JSON output; add retry/validation on parse failures.
 
 ## Deployment
 
